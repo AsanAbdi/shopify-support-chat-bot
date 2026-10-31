@@ -3,7 +3,7 @@
 One EC2 instance running the same Docker Compose stack that runs locally (Caddy for HTTPS, FastAPI, Celery worker and
 beat, PostgreSQL + pgvector, Redis), with everything around it done the AWS way: Terraform, IAM role instead of keys,
 secrets in SSM Parameter Store, encrypted disks with daily snapshots, backups in S3, logs and alarms in CloudWatch.
-This matches the original spec (one VPS, Docker, EU) and is the cheapest way to run about 1 200 chats a month.
+This is the cheapest way to run about 1 200 chats a month.
 
 > **Status.** The Terraform code passes `terraform validate` and `terraform fmt`, the scripts pass `shellcheck`, and the
 > application image, compose files and tests were exercised locally. The stack has **not been applied to a real AWS account** yet:
