@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Demo store: widget preview</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; background: #fafafa; color: #222; }
+    main { max-width: 760px; margin: 60px auto; padding: 0 20px; }
+    code { background: #eee; padding: 2px 6px; border-radius: 4px; }
+    li { margin: 6px 0; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Demo store</h1>
+    <p>This page embeds the support widget with a single <code>&lt;script&gt;</code> tag (bottom-right corner).</p>
+    <p>Try these prompts:</p>
+    <ul>
+      <li>How long do I have to return an item?</li>
+      <li>Wie viel kostet der Versand nach Deutschland?</li>
+      <li>Waar is mijn bestelling 1002? (jan.devries@example.nl)</li>
+      <li>Order 1001, anna.schmidt@example.de</li>
+      <li>Do you have a waterproof jacket under 150 euro?</li>
+      <li>I want to speak to a human</li>
+    </ul>
+  </main>
+  <script src="/widget.js" data-color="#0b6e4f" data-title="Shop Support" data-privacy-url="https://demo-store.example.com/privacy" defer></script>
+</body>
+</html>

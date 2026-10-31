@@ -1,0 +1,27 @@
+#cloud-config
+# Rendered by Terraform. Scripts are stored in the repository (infra/aws/scripts) and embedded here, so the first
+# boot works even before the repository can be cloned. Nothing secret is written: secrets are read from SSM at deploy time.
+write_files:
+  - path: /etc/shop-support/host.env
+    permissions: "0644"
+    content: |
+      ${indent(6, host_env)}
+  - path: /usr/local/bin/shop-support-bootstrap
+    permissions: "0755"
+    encoding: b64
+    content: ${bootstrap}
+  - path: /usr/local/bin/shop-support-deploy
+    permissions: "0755"
+    encoding: b64
+    content: ${deploy}
+  - path: /usr/local/bin/shop-support-backup
+    permissions: "0755"
+    encoding: b64
+    content: ${backup}
+  - path: /usr/local/bin/shop-support-restore
+    permissions: "0755"
+    encoding: b64
+    content: ${restore}
+
+runcmd:
+  - [bash, -c, "/usr/local/bin/shop-support-bootstrap >> /var/log/shop-support-bootstrap.log 2>&1"]

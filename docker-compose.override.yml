@@ -1,0 +1,19 @@
+# Local development conveniences. Loaded automatically by plain `docker compose ...`;
+# CI, the production overlay and the AWS deploy pass `-f` explicitly, so this file is NOT applied there
+# (bind mounts do not work in Docker-in-Docker, and a server must run the code baked into its image).
+#
+# The application code is mounted from ./backend/app: edit a file, then `docker compose restart api worker`
+# (no image rebuild). Dependency changes (pyproject.toml) still need `docker compose build`.
+services:
+  tests:
+    volumes:
+      - ./backend:/app  # edit-and-rerun without rebuilding the image
+  api:
+    volumes:
+      - ./backend/app:/app/app:ro
+  worker:
+    volumes:
+      - ./backend/app:/app/app:ro
+  beat:
+    volumes:
+      - ./backend/app:/app/app:ro

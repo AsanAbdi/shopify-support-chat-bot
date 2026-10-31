@@ -1,0 +1,274 @@
+name: shop-support
+
+x-backend: &backend
+  build:
+    context: ./backend
+    target: prod
+  image: shop-support-backend:latest
+  env_file:
+    - path: .env
+      required: false
+  environment: &backend-env
+    DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-app}@db:5432/${POSTGRES_DB:-app}
+    REDIS_URL: redis://redis:6379/0
+  restart: unless-stopped
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-app}
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-app} -d ${POSTGRES_DB:-app}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "noeviction"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  # Emulates Shopify Admin GraphQL and Freshdesk v2 until real credentials are connected.
+  mock-services:
+    <<: *backend
+    command: ["uvicorn", "mock_services.main:app", "--host", "0.0.0.0", "--port", "9000"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9000/healthz', timeout=2)"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  migrate:
+    <<: *backend
+    command: ["alembic", "upgrade", "head"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  # One-shot, idempotent: loads the demo knowledge base and syncs the (mock) catalog, so a fresh
+  # `docker compose up` yields a working demo. Skipped in production (see docker-compose.prod.yml).
+  seed:
+    <<: *backend
+    environment:
+      <<: *backend-env
+      EMBEDDINGS_THREADS: "0"
+    command: ["python", "-m", "scripts.seed_demo"]
+    restart: "no"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      mock-services:
+        condition: service_healthy
+
+  api:
+    <<: *backend
+    ports:
+      - "${API_PORT:-8088}:8000"
+    volumes:
+      - uploads:/data/uploads
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      mock-services:
+        condition: service_healthy
+
+  worker:
+    <<: *backend
+    environment:
+      <<: *backend-env
+      EMBEDDINGS_THREADS: "0"  # bulk indexing may use all cores; chat traffic is capped at 1 thread per call
+    command: ["celery", "-A", "app.workers.celery_app", "worker", "-l", "INFO", "-c", "2"]
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A app.workers.celery_app inspect ping -d celery@$$HOSTNAME || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 40s
+    volumes:
+      - uploads:/data/uploads
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  beat:
+    <<: *backend
+    command: ["celery", "-A", "app.workers.celery_app", "beat", "-l", "INFO", "-s", "/tmp/celerybeat-schedule"]
+    healthcheck:
+      disable: true
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # ---- one-off jobs (docker compose --profile ... run --rm ...) ----
+  tests:
+    <<: *backend
+    profiles: ["test"]
+    build:
+      context: ./backend
+      target: dev
+    image: shop-support-backend:dev
+    restart: "no"
+    environment:
+      <<: *backend-env
+      APP_ENV: test
+      TEST_DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-app}@db:5432/app_test
+      TEST_ADMIN_DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-app}@db:5432/postgres
+      LLM_PROVIDER: fake
+      ANTHROPIC_API_KEY: ""  # tests must never be able to spend real money
+      OPENAI_API_KEY: ""
+      EMBEDDINGS_PROVIDER: fake
+      REDIS_URL: redis://redis:6379/5
+      RUFF_CACHE_DIR: /tmp/ruff_cache  # the source is bind-mounted read-mostly; caches go to /tmp
+      PYTEST_ADDOPTS: "-o cache_dir=/tmp/pytest_cache"
+    command: ["sh", "-c", "ruff check . && pytest -q"]
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mock-services:
+        condition: service_healthy
+
+  # Load test (make loadtest): a rate-limit-free API instance + the client, both in the compose network.
+  api-load:
+    <<: *backend
+    profiles: ["load"]
+    cpus: 4  # same as the target VPS (4 vCPU); the Postgres/Redis/mock containers are not limited
+    environment:
+      <<: *backend-env
+      RATE_LIMIT_CHAT_PER_MIN: "100000"
+      RATE_LIMIT_HTTP_PER_MIN: "100000"
+      LLM_PROVIDER: fake  # a load test with a paid model would burn money and measure the vendor, not us
+      ANTHROPIC_API_KEY: ""
+      OPENAI_API_KEY: ""
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      mock-services:
+        condition: service_healthy
+
+  # Model comparison playground (backend/scripts/retrieval_lab.py). Models download into a named volume.
+  lab:
+    <<: *backend
+    profiles: ["lab"]
+    restart: "no"
+    environment:
+      <<: *backend-env
+      EMBEDDINGS_THREADS: "0"
+      HF_HUB_DISABLE_XET: "1"  # the xet transfer protocol breaks on flaky links; plain HTTP resumes
+      LAB_CACHE: /lab-models
+      LAB_MODELS: ${LAB_MODELS:-minilm}
+      LAB_RERANK: ${LAB_RERANK:-0}
+    command: ["python", "-m", "scripts.retrieval_lab"]
+    user: root
+    volumes:
+      - labmodels:/lab-models
+      - ./reports:/app/reports
+
+  loadtest:
+    <<: *backend
+    profiles: ["load"]
+    restart: "no"
+    command: ["python", "-m", "scripts.loadtest"]
+    volumes:
+      - ./reports:/app/reports
+    depends_on:
+      api-load:
+        condition: service_healthy
+
+  # Free eval: fake LLM (checks retrieval + routing). Cannot spend money: the key is blanked.
+  eval:
+    <<: *backend
+    environment:
+      <<: *backend-env
+      EMBEDDINGS_THREADS: "0"
+      LLM_PROVIDER: fake
+      ANTHROPIC_API_KEY: ""
+      OPENAI_API_KEY: ""
+    profiles: ["eval"]
+    restart: "no"
+    command: ["python", "-m", "eval.run_eval"]
+    volumes:
+      - ./reports:/app/reports
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      mock-services:
+        condition: service_healthy
+
+  # PAID eval: uses the provider and key from .env (about EUR 0.1-0.3 for 70 questions on Haiku). Run it deliberately:
+  #   docker compose --profile eval-real run --rm eval-real
+  eval-real:
+    <<: *backend
+    environment:
+      <<: *backend-env
+      EMBEDDINGS_THREADS: "0"
+    profiles: ["eval-real"]
+    restart: "no"
+    command: ["python", "-m", "eval.run_eval"]
+    volumes:
+      - ./reports:/app/reports
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      mock-services:
+        condition: service_healthy
+
+  # ---- monitoring (docker compose --profile monitoring up -d) ----
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    profiles: ["monitoring"]
+    volumes:
+      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - promdata:/prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9091}:9090"
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    profiles: ["monitoring"]
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infra/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafanadata:/var/lib/grafana
+    ports:
+      - "${GRAFANA_PORT:-3001}:3000"
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  redisdata:
+  uploads:
+  promdata:
+  grafanadata:
+  labmodels:

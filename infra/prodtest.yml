@@ -1,0 +1,23 @@
+# Rehearse the production overlay on a laptop (self-signed HTTPS on https://localhost:8443). Never use on a server.
+#   make prod-rehearsal      (= DOMAIN=localhost ACME_EMAIL=... POSTGRES_PASSWORD=... COMPOSE_PROFILES=mock,demo
+#                             docker compose -p shopprod -f docker-compose.yml -f docker-compose.prod.yml -f infra/prodtest.yml up -d --build)
+# It runs the real production settings (APP_ENV=prod, strict secrets check, CORS allow-list, Caddy, S3-less backups)
+# with the built-in Shopify/Freshdesk mocks, which prod normally refuses unless ALLOW_MOCK_INTEGRATIONS is set.
+services:
+  api:
+    environment:
+      JWT_SECRET: rehearsal-secret-rehearsal-secret-1234
+      ADMIN_PASSWORD: rehearsal-admin-pass-1
+      ALLOW_MOCK_INTEGRATIONS: "true"
+      URL_FETCH_ALLOW_PRIVATE: "true"
+      CORS_ORIGINS: '["https://shop.example"]'
+      LLM_PROVIDER: fake # a rehearsal must never spend money
+      ANTHROPIC_API_KEY: ""
+  worker:
+    environment:
+      LLM_PROVIDER: fake
+      ANTHROPIC_API_KEY: ""
+  caddy:
+    ports: !override
+      - "8080:80"
+      - "8443:443"

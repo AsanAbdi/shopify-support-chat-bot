@@ -1,0 +1,77 @@
+# Production overlay for the Hetzner VPS:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+# Requires in .env: DOMAIN, ACME_EMAIL, JWT_SECRET, ADMIN_PASSWORD, POSTGRES_PASSWORD, ANTHROPIC_API_KEY, real SHOPIFY_/FRESHDESK_ values.
+services:
+  api:
+    ports: !reset []
+    depends_on: !override
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    environment:
+      APP_ENV: prod
+      URL_FETCH_ALLOW_PRIVATE: "false"
+      PUBLIC_BASE_URL: https://${DOMAIN:?set DOMAIN}
+    deploy:
+      resources:
+        limits: { memory: 2g }
+  worker:
+    environment:
+      APP_ENV: prod
+      URL_FETCH_ALLOW_PRIVATE: "false"
+    deploy:
+      resources:
+        limits: { memory: 2g }
+  beat:
+    environment:
+      APP_ENV: prod
+
+  # Mocks and demo data must never run in production.
+  mock-services:
+    profiles: ["mock"]
+  seed:
+    profiles: ["demo"]
+
+  db:
+    ports: !reset []
+
+  caddy:
+    image: caddy:2.8-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL}
+    volumes:
+      - ./infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  # Daily pg_dump at 02:30, kept 7 daily / 4 weekly / 3 monthly. Copy ./backups off the server (e.g. Hetzner Storage Box).
+  db-backup:
+    image: prodrigestivill/postgres-backup-local:16
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      SCHEDULE: "30 2 * * *"
+      BACKUP_KEEP_DAYS: 7
+      BACKUP_KEEP_WEEKS: 4
+      BACKUP_KEEP_MONTHS: 3
+      HEALTHCHECK_PORT: 8080
+    volumes:
+      - ./backups:/backups
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:

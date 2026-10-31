@@ -1,0 +1,70 @@
+[project]
+name = "shop-support-assistant"
+version = "0.1.0"
+description = "AI support assistant for Shopify stores (RAG + LangGraph agent)"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "python-multipart>=0.0.12",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "sqlalchemy[asyncio]>=2.0.36",
+    "psycopg[binary,pool]>=3.2",
+    "alembic>=1.14",
+    "pgvector>=0.3.6",
+    "langchain>=1.0",
+    "langchain-core>=1.0",
+    "langchain-anthropic>=1.0",
+    "langchain-openai>=1.0",
+    "langchain-aws>=1.0",  # Amazon Bedrock (Claude inside AWS, EU region, IAM role instead of an API key)
+    "langchain-text-splitters>=1.0",
+    "langgraph>=1.0",
+    "langgraph-checkpoint-postgres>=3.0",
+    "fastembed>=0.5",
+    "graphql-core>=3.2",  # real GraphQL execution inside the Shopify mock (mock_services only)
+    "celery[redis]>=5.4",
+    "redis>=5.2",
+    "httpx>=0.28",
+    "pypdf>=5.1",
+    "python-docx>=1.1",
+    "beautifulsoup4>=4.12",
+    "lxml>=5.3",
+    "langdetect>=1.0.9",
+    "pyjwt>=2.10",
+    "bcrypt>=4.2",
+    "prometheus-client>=0.21",
+    "prometheus-fastapi-instrumentator>=7.0",
+    "sentry-sdk[fastapi]>=2.19",
+    "langfuse>=3.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "ruff>=0.8",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+extend-exclude = ["migrations"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ASYNC", "S", "C4", "SIM"]
+ignore = ["S101", "S107", "S311", "B008", "E501", "ASYNC240", "C416", "C405"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S105", "S106", "S311"]
+"eval/*" = ["S311"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+testpaths = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning"]

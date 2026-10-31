@@ -1,0 +1,5 @@
+"""Small DE/EN/NL stopword list shared by full-text query building and the offline fake embedder."""
+
+STOPWORDS = set(
+    ["the", "and", "for", "are", "but", "not", "you", "your", "with", "this", "that", "have", "has", "from", "they", "will", "what", "when", "where", "how", "can", "could", "would", "about", "into", "over", "than", "then", "them", "there", "their", "which", "who", "whom", "whose", "been", "were", "was", "does", "did", "get", "got", "our", "out", "any", "all", "der", "die", "das", "und", "ist", "ein", "eine", "einen", "nicht", "mit", "für", "auf", "wie", "wann", "wo", "kann", "ich", "sie", "wir", "mein", "meine", "dem", "den", "des", "zu", "im", "von", "bei", "auch", "oder", "aber", "wenn", "was", "haben", "hat", "sind", "wird", "werden", "kann", "können", "mich", "mir", "het", "een", "van", "voor", "niet", "met", "zijn", "ook", "maar", "als", "dat", "dit", "die", "wat", "hoe", "wanneer", "waar", "kan", "ik", "jij", "wij", "mijn", "heb", "hebben", "bij", "naar", "over", "uit", "nog", "dan", "wordt", "worden"]
+)

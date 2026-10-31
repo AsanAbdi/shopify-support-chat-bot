@@ -1,0 +1,46 @@
+# AWS overlay (EC2). Used together with the production overlay:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.aws.yml up -d --build
+# (infra/aws/scripts/deploy.sh does this on the server.)
+#   * state lives on the separate encrypted EBS data disk mounted at /srv/data (daily EBS snapshots + pg_dump to S3)
+#   * container logs go to CloudWatch Logs (PII is already masked in the application logs)
+#   * the local pg_dump container of the prod overlay is replaced by the S3 backup timer on the host
+x-aws-logging: &aws-logging
+  driver: awslogs
+  options:
+    awslogs-region: ${AWS_REGION:-eu-central-1}
+    awslogs-group: ${AWS_LOG_GROUP:?set AWS_LOG_GROUP}
+    awslogs-create-group: "false" # created by Terraform with a retention period
+    tag: "{{.Name}}"
+
+services:
+  api:
+    logging: *aws-logging
+    environment:
+      AWS_REGION: ${AWS_REGION:-eu-central-1} # used by LLM_PROVIDER=bedrock (credentials come from the instance role)
+  worker:
+    logging: *aws-logging
+    environment:
+      AWS_REGION: ${AWS_REGION:-eu-central-1}
+  beat:
+    logging: *aws-logging
+  caddy:
+    logging: *aws-logging
+  db-backup:
+    profiles: ["local-backup"] # off on AWS: backups go to S3
+
+volumes:
+  pgdata:
+    driver: local
+    driver_opts: { type: none, o: bind, device: /srv/data/postgres }
+  redisdata:
+    driver: local
+    driver_opts: { type: none, o: bind, device: /srv/data/redis }
+  uploads:
+    driver: local
+    driver_opts: { type: none, o: bind, device: /srv/data/uploads }
+  caddy_data:
+    driver: local
+    driver_opts: { type: none, o: bind, device: /srv/data/caddy_data }
+  caddy_config:
+    driver: local
+    driver_opts: { type: none, o: bind, device: /srv/data/caddy_config }

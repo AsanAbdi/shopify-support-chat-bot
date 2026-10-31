@@ -1,0 +1,15 @@
+# Copy to terraform.tfvars and edit. Nothing secret belongs here: secrets go to SSM Parameter Store (infra/aws/scripts/put-secrets.sh).
+
+region      = "eu-central-1"
+alert_email = "ops@your-shop.com"
+
+domain          = "support.your-shop.com"
+route53_zone_id = "" # set it and Terraform creates the A record
+
+repo_url = "https://gitlab.com/your-group/shop-support.git"
+repo_ref = "main"
+
+instance_type  = "m7i.xlarge" # 4 vCPU, 16 GB (e5-large embeddings); t3.large is enough with the lighter mpnet model
+data_volume_gb = 60
+
+enable_bedrock = false # true: Claude on Amazon Bedrock in the EU through the instance role (LLM_PROVIDER=bedrock)
