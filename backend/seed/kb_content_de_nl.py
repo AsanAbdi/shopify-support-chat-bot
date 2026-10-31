@@ -1,4 +1,4 @@
-"""German and Dutch versions of the 11 most important Help Center articles (same facts as kb_content_en.py)."""
+"""German and Dutch versions of the 17 most important Help Center articles (same facts as kb_content_en.py)."""
 
 DE = {
     "rueckgabe-30-tage": ("Rückgaberecht: 30 Tage", "returns", [
@@ -83,6 +83,49 @@ DE = {
                 "Chat-Assistent: rund um die Uhr, übergibt bei Bedarf an einen Kollegen.",
                 "Eine Telefon-Hotline, WhatsApp oder Support über soziale Medien bieten wir nicht an.",
                 "Wir haben keine Ladengeschäfte, die Adresse dient nur für Briefe: Nordvik Outdoor B.V., Keizersgracht 100, 1015 AA Amsterdam."]),
+    ]),
+    "wann-kommt-meine-erstattung": ("Wann erhalte ich meine Erstattung?", "returns", [
+        ("p", "Wenn Ihr Paket in unserem Lager ankommt, prüfen wir es innerhalb von 2 Werktagen. Die Erstattung wird danach innerhalb von 5 Werktagen ausgezahlt."),
+        ("h2", "Art der Erstattung"),
+        ("ul", ["Erstattungen gehen immer auf die ursprüngliche Zahlungsart zurück.",
+                "PayPal: in der Regel wenige Stunden nach unserer Freigabe.",
+                "Karten, iDEAL, Bancontact, SEPA-Lastschrift: Ihre Bank braucht weitere 3 bis 5 Werktage, bis der Betrag sichtbar ist.",
+                "Klarna: Ihre Rechnung wird automatisch angepasst.",
+                "Ganz oder teilweise mit Geschenkgutschein bezahlte Bestellungen: Der Gutscheinbetrag wird auf einen neuen Geschenkgutschein erstattet."]),
+        ("p", "Die ursprünglichen Standardversandkosten werden erstattet, wenn die vollständige Bestellung zurückgesendet wird."),
+    ]),
+    "zustellung-fehlgeschlagen": ("Der Paketdienst konnte mein Paket nicht zustellen", "shipping", [
+        ("p", "War niemand zu Hause, hinterlässt der Paketdienst eine Benachrichtigung und versucht es am nächsten Werktag erneut. Nach dem zweiten fehlgeschlagenen Versuch wird das Paket zu einer Abholstelle gebracht und dort 7 Tage aufbewahrt."),
+        ("ul", ["Auf der Tracking-Seite können Sie einen neuen Liefertermin oder eine Abholstelle wählen.",
+                "Holen Sie das Paket nicht innerhalb von 7 Tagen ab, geht es an unser Lager zurück. Wir erstatten den Bestellwert; die ursprünglichen Versandkosten erstatten wir nur bei einem Zustellfehler unsererseits.",
+                "Sie können den Chat-Assistenten auch bitten, an einen Kollegen zu übergeben, der einen neuen Versand veranlassen kann."]),
+    ]),
+    "lieferlaender": ("In welche Länder liefern Sie?", "shipping", [
+        ("p", "Wir liefern in alle 27 EU-Mitgliedstaaten. Nach Großbritannien, in die Schweiz, nach Norwegen, Island, Liechtenstein und in alle anderen Länder außerhalb der EU liefern wir derzeit nicht, ebenso wenig an Paketweiterleitungsdienste."),
+        ("p", "Der Grund ist der Zoll: Außerhalb der EU fallen Einfuhrzölle, Einfuhrumsatzsteuer und zusätzliche Formalitäten an, die wir noch nicht abwickeln können. Wir prüfen einen Versand nach Großbritannien und in die Schweiz."),
+        ("p", "Sie können mit einer Lieferadresse in einem EU-Land als Geschenk für jemanden im Ausland bestellen."),
+    ]),
+    "paket-verspaetet-oder-verloren": ("Mein Paket ist verspätet oder verloren", "shipping", [
+        ("p", "Prüfen Sie zuerst den Tracking-Link in Ihrer Versandbestätigung. Ein Status wie Verspätet oder Zustellversuch klärt sich meist innerhalb eines Tages."),
+        ("h2", "Wenn das Paket nicht angekommen ist"),
+        ("ul", ["Ist Ihr Paket 5 Werktage nach dem spätesten voraussichtlichen Liefertermin nicht angekommen, wenden Sie sich mit Ihrer Bestellnummer an den Kundenservice.",
+                "Wir starten dann einen Nachforschungsauftrag beim Paketdienst. Das dauert bis zu 7 Werktage.",
+                "Kann das Paket nicht gefunden werden, schicken wir kostenlos Ersatz oder erstatten die Bestellung, ganz wie Sie möchten."]),
+        ("p", "Fragen Sie bitte auch bei Nachbarn nach und schauen Sie in Ihre Paketbox: Paketdienste legen Pakete manchmal ohne Benachrichtigung ab."),
+    ]),
+    "daunenjacke-waschen": ("Daunenjacke waschen", "care", [
+        ("p", "Waschen Sie Daunenjacken bei 30 Grad im Schonwaschgang mit einem speziellen Daunenwaschmittel. Verwenden Sie keinen Weichspüler und kein normales Waschmittel, denn das entzieht den Daunen die natürlichen Öle."),
+        ("ul", ["Nutzen Sie eine Frontlader-Maschine mit viel Platz und einem zusätzlichen Spülgang.",
+                "Trocknen Sie die Jacke im Trockner bei niedriger Temperatur mit zwei oder drei sauberen Tennisbällen oder Trocknerbällen. Halten Sie alle 30 Minuten an und schütteln Sie die Jacke auf.",
+                "Die Jacke muss vor dem Verstauen vollständig trocken sein, das kann 2 bis 3 Stunden dauern. Feuchte Daunen riechen und verlieren ihre Bauschkraft.",
+                "Bewahren Sie die Jacke locker in einem atmungsaktiven Beutel auf, nicht im Packsack."]),
+    ]),
+    "rabattcodes": ("Rabattcodes", "payment", [
+        ("p", "Neukunden erhalten 10 % Rabatt auf die erste Bestellung, wenn sie sich für unseren Newsletter anmelden. Der Code kommt per E-Mail, nachdem Sie Ihre Adresse bestätigt haben, und ist 30 Tage gültig."),
+        ("ul", ["Pro Bestellung kann nur ein Rabattcode verwendet werden. Codes lassen sich nicht miteinander kombinieren.",
+                "Codes gelten nicht für Artikel mit der Kennzeichnung Final Sale, für Geschenkgutscheine und für Versandkosten.",
+                "Funktioniert ein Code nicht, prüfen Sie das Ablaufdatum und den Mindestbestellwert in der E-Mail und ob ausgeschlossene Artikel im Warenkorb liegen."]),
+        ("p", "Codes können nach der Bestellung nicht mehr hinzugefügt werden. Wir gleichen keine Preise von Wettbewerbern an und erstatten nach dem Kauf keine Preisdifferenzen. Rabatte für Studierende, Militärangehörige oder Treueprogramme bieten wir derzeit nicht an."),
     ]),
 }
 
@@ -169,5 +212,48 @@ NL = {
                 "Chatassistent: 24 uur per dag beschikbaar, draagt zo nodig over aan een collega.",
                 "We hebben geen telefonische helpdesk, WhatsApp of support via sociale media.",
                 "We hebben geen winkels; het adres is alleen voor post: Nordvik Outdoor B.V., Keizersgracht 100, 1015 AA Amsterdam."]),
+    ]),
+    "wanneer-krijg-ik-mijn-terugbetaling": ("Wanneer krijg ik mijn terugbetaling?", "returns", [
+        ("p", "Als je pakket in ons magazijn aankomt, controleren we het binnen 2 werkdagen. De terugbetaling wordt daarna binnen 5 werkdagen uitgevoerd."),
+        ("h2", "Manier van terugbetalen"),
+        ("ul", ["Terugbetalingen gaan altijd naar de oorspronkelijke betaalmethode.",
+                "PayPal: meestal binnen enkele uren nadat we de betaling hebben vrijgegeven.",
+                "Kaarten, iDEAL, Bancontact, SEPA-incasso: je bank heeft nog 3 tot 5 werkdagen nodig om het bedrag te tonen.",
+                "Klarna: je factuur wordt automatisch aangepast.",
+                "Bestellingen die geheel of deels met een cadeaukaart zijn betaald: het cadeaukaartbedrag wordt terugbetaald op een nieuwe cadeaukaart."]),
+        ("p", "De oorspronkelijke standaard verzendkosten worden terugbetaald als de volledige bestelling wordt geretourneerd."),
+    ]),
+    "bezorging-mislukt": ("De vervoerder kon mijn pakket niet bezorgen", "shipping", [
+        ("p", "Als er niemand thuis was, laat de vervoerder een bericht achter en probeert hij het de volgende werkdag opnieuw. Na de tweede mislukte poging gaat het pakket naar een afhaalpunt en wordt het daar 7 dagen bewaard."),
+        ("ul", ["Op de trackingpagina kun je een nieuwe bezorgdatum of een afhaalpunt kiezen.",
+                "Haal je het pakket niet binnen 7 dagen op, dan gaat het terug naar ons magazijn. We betalen de bestelwaarde terug; de oorspronkelijke verzendkosten betalen we alleen terug bij een bezorgfout aan onze kant.",
+                "Je kunt de chatassistent ook vragen om je door te verbinden met een collega die een nieuwe zending kan regelen."]),
+    ]),
+    "verzendlanden": ("Naar welke landen verzenden jullie?", "shipping", [
+        ("p", "We verzenden naar alle 27 EU-lidstaten. Naar het Verenigd Koninkrijk, Zwitserland, Noorwegen, IJsland, Liechtenstein en andere landen buiten de EU verzenden we momenteel niet, en ook niet naar pakketdoorstuurdiensten."),
+        ("p", "De reden is de douane: buiten de EU zijn invoerrechten, invoer-btw en extra papierwerk van toepassing, die we nog niet kunnen afhandelen. We onderzoeken een service voor het Verenigd Koninkrijk en Zwitserland."),
+        ("p", "Je kunt met een bezorgadres in een EU-land bestellen als cadeau voor iemand in het buitenland."),
+    ]),
+    "pakket-vertraagd-of-kwijt": ("Mijn pakket is vertraagd of kwijt", "shipping", [
+        ("p", "Controleer eerst de trackinglink in je verzendbevestiging. Een status als Vertraagd of Bezorgpoging lost zich meestal binnen een dag op."),
+        ("h2", "Als het pakket niet is aangekomen"),
+        ("ul", ["Is je pakket 5 werkdagen na de laatste verwachte bezorgdatum nog niet aangekomen, neem dan met je bestelnummer contact op met de klantenservice.",
+                "We starten dan een onderzoek bij de vervoerder. Dit duurt maximaal 7 werkdagen.",
+                "Als het pakket niet wordt gevonden, sturen we gratis een vervanging of betalen we de bestelling terug, wat jij het liefst wilt."]),
+        ("p", "Vraag het ook bij je buren na en kijk in je pakketbox: vervoerders leveren een pakket soms af zonder bericht."),
+    ]),
+    "donsjas-wassen": ("Een donsjas wassen", "care", [
+        ("p", "Was donsjassen op 30 graden met een fijnwasprogramma en een speciaal donswasmiddel. Gebruik geen wasverzachter of gewoon wasmiddel, want dat haalt de natuurlijke oliën uit het dons."),
+        ("ul", ["Gebruik een voorlader met veel ruimte en een extra spoelbeurt.",
+                "Droog de jas in de droger op lage temperatuur met twee of drie schone tennisballen of drogerballen. Stop elke 30 minuten en schud de jas op.",
+                "De jas moet helemaal droog zijn voordat je hem opbergt; dat kan 2 tot 3 uur duren. Vochtig dons ruikt en verliest zijn volume.",
+                "Bewaar de jas los in een ademende zak, niet in de pakzak."]),
+    ]),
+    "kortingscodes": ("Kortingscodes", "payment", [
+        ("p", "Nieuwe klanten krijgen 10% korting op hun eerste bestelling als ze zich aanmelden voor onze nieuwsbrief. De code komt per e-mail nadat je je adres hebt bevestigd en is 30 dagen geldig."),
+        ("ul", ["Per bestelling kan maar één kortingscode worden gebruikt. Codes kunnen niet worden gecombineerd.",
+                "Codes gelden niet voor artikelen met het label Final sale, cadeaukaarten of verzendkosten.",
+                "Werkt een code niet, controleer dan de vervaldatum en het minimale bestelbedrag in de e-mail, en of er geen uitgesloten artikelen in je winkelwagen zitten."]),
+        ("p", "Codes kunnen niet meer worden toegevoegd nadat de bestelling is geplaatst. We passen onze prijzen niet aan die van concurrenten aan en betalen na aankoop geen prijsverschillen terug. We hebben momenteel geen korting voor studenten, militairen of vaste klanten."),
     ]),
 }

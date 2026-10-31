@@ -26,7 +26,8 @@ MAX_ORDER_FAILURES = 5
 
 class search_knowledge_base(BaseModel):  # noqa: N801
     """Search the help center and policy documents (shipping, returns, payment, sizing, warranty, how-to).
-    Use it for every policy or how-to question. Write the query in the customer's language."""
+    Use it for every policy or how-to question. Write the query in English, the main language of the help center,
+    whatever language the customer uses."""
 
     query: str = Field(description="Self-contained search query")
 

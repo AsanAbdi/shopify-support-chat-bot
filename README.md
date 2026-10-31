@@ -4,7 +4,7 @@ A personal project for exploring LangChain and LangGraph on a realistic problem:
 online store that answers from a knowledge base, checks order status, searches products and hands difficult cases to a human agent.
 
 There is no real store behind it. Shopify and Freshdesk are replaced by a `mock-services` container, and the data is synthetic:
-a fictional shop called Nordvik Outdoor with about 1,500 SKUs, 89 knowledge base documents in German, English and Dutch, and 20 orders
+a fictional shop called Nordvik Outdoor with about 1,500 SKUs, 101 knowledge base documents in German, English and Dutch, and 20 orders
 in different states. Everything else is built to production standards, with tests, measurements, monitoring, GDPR handling and AWS infrastructure.
 
 **Stack:** Python 3.12, FastAPI, LangChain, LangGraph, Claude (Anthropic), PostgreSQL + pgvector, Celery + Redis, Docker Compose, Terraform.
@@ -37,24 +37,35 @@ admin SPA ──REST+JWT───────►    │                      └
 | Time to first token, knowledge base answer | under 2.5 s | 2.35 s | Claude Haiku 4.5, single turn |
 | Time to first token, order lookup with a tool call | under 2.5 s | 2.36 s | Claude Haiku 4.5, single turn |
 | p95 time to first token, 30 concurrent conversations | under 2.5 s | 0.9–1.4 s, excluding the model | fake model, 4 CPUs, 120 turns, 0 errors |
-| Correct document in the top 5 search results | at least 85% | 86.7% (EN 20/20, DE 16/20, NL 16/20) | 60 questions, fake model |
-| Answer accuracy | at least 85% | **not measured yet** | requires the paid eval |
-| Honest "I don't know" on out-of-scope questions | 10 of 10 | **not measured yet** on the real model | requires the paid eval |
+| Correct document in the top 5 search results | at least 85% | 100% | 60 questions, Claude Haiku 4.5 |
+| Answer accuracy (right source cited and expected fact present) | at least 85% | 91.7% (EN 19/20, DE 19/20, NL 17/20) | 60 questions, Claude Haiku 4.5 |
+| Recognized "no answer" on out-of-scope questions | 10 of 10 | **6 of 10, target missed** | 10 questions, Claude Haiku 4.5 |
+
+### Eval Failures
+
+Reading the remaining failures by hand shows where the strict automatic score comes from:
+
+- **3 parcel replies:** for "my parcel has not arrived", the bot focuses on the order number and leaves out the 5-working-day guidance.
+- **2 scoring artifacts:** the answer has the right fact but cites a document outside the expected list.
+- **4 out-of-scope failures:** 3 are reasonable refusals in wording the checker does not recognize, and 1 states an unsupported "no" about 12-month installments.
+
+The first run on this question set scored 80.0% in-scope accuracy and 88.3% search accuracy. The fixes are described below. Between the two runs the expected document lists were also extended with the new translations and documents that do contain the fact.
 
 ### Real Model Results
 
-The Claude Haiku 4.5 data so far is small: 25 calls from manual conversations and one full trace.
+Cost and latency figures come from 25 calls in manual conversations, one full trace and the 70-question eval.
 
 | Metric | Value |
 | --- | --- |
 | Average call | 2,666 input tokens, 104 output tokens, about €0.003 |
 | Knowledge base question | 1 call, about €0.003, full answer in 3.1 s |
 | Order question (tool call + answer) | 2 calls, about €0.007, full answer in 3.1 s |
+| 70-question eval | €0.26 in total, about €0.0037 per question |
 
 Costs assume €0.92 per million input tokens and €4.60 per million output tokens. Timings come from a single run, so they are not p95 values.
 The system has not been load tested with the real model, so the 0.9–1.4 s result above describes this stack only.
 
-The paid 70-question eval has not been run yet (estimated cost €0.10–0.30):
+To reproduce the eval with a real API key:
 
 ```bash
 docker compose --profile eval-real run --rm eval-real
@@ -71,6 +82,9 @@ That replaces two calls (decide to search, then answer) with one, saving both ti
 **Search quality.** Embedding models were compared on the project's own questions: `multilingual-e5-large` reaches 87% top-1 accuracy against 77% for MiniLM,
 and rejects 80% of out-of-scope questions against 60%. A reranker raised top-1 to 100% but cost 1.5–3.5 s per query on CPU, so it stays off.
 Vector and full-text results are merged with RRF, and the `0.82` confidence threshold comes from the `calibrate` script.
+
+**Cross-language answers.** The first eval showed that German and Dutch questions missed articles available only in English. The search tool now always queries in English,
+and the 6 most common topics were translated into German and Dutch. Search accuracy rose from 88.3% to 100%, and answer accuracy from 80.0% to 91.7%.
 
 **Fewer invented answers.** The model answers only from retrieved excerpts. Below the threshold the bot says it found nothing, and if the excerpts
 do not contain the answer, the model calls `report_no_answer`. Only sources the answer actually cites are shown to the customer.
@@ -146,7 +160,9 @@ infra/                  Prometheus, Grafana, Caddy, AWS (Terraform and scripts)
 
 ## Limitations
 
-- Answer quality and load behavior with the real model have not been measured.
+- Out-of-scope handling is below its target of 10 out of 10.
+- Most help center articles exist only in English, so German and Dutch answers can rely on them.
+- Load behavior with the real model has not been measured.
 - The Shopify and Freshdesk clients have been tested against the mocks only.
 - Product availability updates once a day.
 - If Freshdesk is unavailable, the customer receives `SUPPORT_EMAIL`, and the ticket is not retried.
